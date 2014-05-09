@@ -9,7 +9,7 @@ class Dog{
         short k = 5;
         //Make a Dog object and access it
         Dog dog1 = new Dog();
-        dog1.bark(k);
+        dog1.bark(k,5);
         dog1.name = "Bart";
             
         //Now make a Dog array
