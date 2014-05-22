@@ -10,6 +10,7 @@
 // N. ... ... ...
 
 // Import Necessary Libraries
+import java.io.*;
 import java.awt.*;
 import java.util.*;
 import javax.swing.*;
@@ -100,6 +101,13 @@ public class BeatBox{
         downTempo.addActionListener(new MyDownTempoListener());
         buttonBox.add(downTempo);
         
+        JButton savePat = new JButton("Save Pattern");
+        savePat.addActionListener(new MySavePatternListener());
+        buttonBox.add(savePat);
+        
+        JButton restorePat = new JButton("Restore Pattern");
+        restorePat.addActionListener(new MyRestorePatternListener());
+        buttonBox.add(restorePat);
         // Creating the Box for Labels
         Box labelBox = new Box(BoxLayout.Y_AXIS);
         for(String instrumentStr : instrumentNames){
@@ -200,7 +208,7 @@ public class BeatBox{
     //   Inner Classes for Other Purposes
     private class MyStartListener implements ActionListener{
         public void actionPerformed(ActionEvent ev){
-            buildAndStartTrack();
+            buildTrackAndStart();
         }
     }
     
@@ -221,6 +229,59 @@ public class BeatBox{
         public void actionPerformed(ActionEvent ev){
             float curTempo = sequencer.getTempoFactor();
             sequencer.setTempoFactor((float)(curTempo*0.97));
+        }
+    }
+    
+    private class MySavePatternListener implements ActionListener{
+        public void actionPerformed(ActionEvent ev){
+            boolean[] checkBoxState = new boolean[256];
+            for(int i = 0;i < 256;i++){
+                JCheckBox check = (JCheckBox) checkBoxList.get(i);
+                if(check.isSelected())
+                    checkBoxState[i] = true;
+                else
+                    checkBoxState[i] = false;
+            }
+            try{
+                // Allowing to Choose File
+                JFileChooser fileSave = new JFileChooser();
+                fileSave.showSaveDialog(frame);
+                File saveFile = fileSave.getSelectedFile();
+                // Writing pattern to file
+                FileOutputStream fos = new FileOutputStream(saveFile);
+                ObjectOutputStream oos = new ObjectOutputStream(fos);
+                oos.writeObject(checkBoxState);
+            }catch(Exception ex){
+                ex.printStackTrace();
+            }
+        }
+    }
+    
+    private class MyRestorePatternListener implements ActionListener{
+        public void actionPerformed(ActionEvent ev){
+            boolean[] checkBoxState = null;
+            try{
+                // Allowing to restore file
+                JFileChooser fileRestore = new JFileChooser();
+                fileRestore.showOpenDialog(fileRestore);
+                File restoreFile = fileRestore.getSelectedFile();
+                // Reading pattern from restored file
+                FileInputStream fis = new FileInputStream(restoreFile);
+                ObjectInputStream ois = new ObjectInputStream(fis);
+                checkBoxState = (boolean[])ois.readObject();
+            }catch(Exception ex){
+                ex.printStackTrace();
+            }    
+            
+            for(int i = 0;i < 256 ;i++){
+                JCheckBox check = (JCheckBox) checkBoxList.get(i);
+                if(checkBoxState[i])
+                    check.setSelected(true);
+                else
+                    check.setSelected(false);
+            }
+            sequencer.stop();
+            buildTrackAndStart();
         }
     }
 }
